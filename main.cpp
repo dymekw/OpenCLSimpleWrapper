@@ -30,8 +30,8 @@ int main()
 		new OpenCLSimpleInArg<int>(arraySize)
 	};
 
-	std::function<int* (int, std::vector<OpenCLArg*>)> fun = ParallelExecutionEngine::getInstance()->generateOpenCLFunction<int>("test.cl", "multiply");
-	int* out = fun(arraySize, args);
+	std::function<int* (int,  int, std::vector<OpenCLArg*>)> fun = ParallelExecutionEngine::getInstance()->generateOpenCLFunction<int>("test.cl", "multiply");
+	int* out = fun(arraySize, 4, args);
 
 	for (int i = 0; i < arraySize; i++) {
 		for (int j = 0; j < arraySize; j++) {

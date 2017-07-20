@@ -17,7 +17,7 @@ public:
 	void execTestCode();
 
 	template <class OUTPUT>
-	std::function<OUTPUT*(int, std::vector<OpenCLArg*>)> generateOpenCLFunction(const char*, const char*);
+	std::function<OUTPUT*(int, int, std::vector<OpenCLArg*>)> generateOpenCLFunction(const char*, const char*);
 
 private:
 	//	FIELDS
@@ -35,7 +35,7 @@ private:
 };
 
 template <class OUTPUT>
-std::function<OUTPUT*(int, std::vector<OpenCLArg*>)> ParallelExecutionEngine::generateOpenCLFunction(const char* openCLFile, const char* functionName) {
+std::function<OUTPUT*(int, int, std::vector<OpenCLArg*>)> ParallelExecutionEngine::generateOpenCLFunction(const char* openCLFile, const char* functionName) {
 	cl_int err;
 	std::ifstream file(openCLFile);
 	checkErr(file.is_open() ? CL_SUCCESS : -1, openCLFile);
@@ -52,7 +52,7 @@ std::function<OUTPUT*(int, std::vector<OpenCLArg*>)> ParallelExecutionEngine::ge
 	cl::Context context = contexts[0];
 
 
-	return [queue, context, kernel](int global, std::vector<OpenCLArg*> args) -> OUTPUT* {
+	return [queue, context, kernel](int global, int local, std::vector<OpenCLArg*> args) -> OUTPUT* {
 		cl_int err;
 
 		std::vector<cl::Buffer> buffers;
@@ -60,7 +60,7 @@ std::function<OUTPUT*(int, std::vector<OpenCLArg*>)> ParallelExecutionEngine::ge
 		OpenCLOutputArg* outArg = NULL;
 
 		int i = 0;
-		for each (OpenCLArg* arg in args)
+		for (OpenCLArg* arg : args)
 		{
 			if (arg->getArgType() == ArgType::IN_POINTER) {
 				cl::Buffer buffer(context, CL_MEM_READ_ONLY, ((OpenCLPointerInArg*)arg)->size);
@@ -86,7 +86,7 @@ std::function<OUTPUT*(int, std::vector<OpenCLArg*>)> ParallelExecutionEngine::ge
 		}
 
 		cl::Event event;
-		err = queue.enqueueNDRangeKernel(*kernel, cl::NullRange, cl::NDRange(global), cl::NDRange(1), NULL, &event);
+		err = queue.enqueueNDRangeKernel(*kernel, cl::NullRange, cl::NDRange(global), cl::NDRange(local), NULL, &event);
 
 		OUTPUT* out = new OUTPUT[outArg->size];
 		event.wait();

@@ -8,7 +8,7 @@ ParallelExecutionEngine::ParallelExecutionEngine()
 	cl::Platform::get(&platformList);
 	checkErr(platformList.size() != 0 ? CL_SUCCESS : -1, "cl::Platform::get");
 
-	for each (cl::Platform platform in platformList) {
+	for (cl::Platform platform : platformList) {
 		cl_context_properties* cprops = new cl_context_properties[3]{
 			CL_CONTEXT_PLATFORM,
 			(cl_context_properties)(platform)(),
@@ -17,7 +17,7 @@ ParallelExecutionEngine::ParallelExecutionEngine()
 		contextProperties.push_back(cprops);
 	}
 
-	for each (cl_context_properties* context_property in contextProperties) {
+	for (cl_context_properties* context_property : contextProperties) {
 		cl::Context context(CL_DEVICE_TYPE_GPU, context_property, NULL, NULL, &err);
 		checkErr(err, "Context::Context()");
 		contexts.push_back(context);
@@ -26,7 +26,7 @@ ParallelExecutionEngine::ParallelExecutionEngine()
 		devices = context.getInfo<CL_CONTEXT_DEVICES>();
 		this->devices.insert(this->devices.end(), devices.begin(), devices.end());
 
-		for each (cl::Device device in this->devices)
+		for (cl::Device device : this->devices)
 		{
 			cl::CommandQueue queue(context, device, 0, &err);
 			commandQueues.push_back(queue);
@@ -48,13 +48,13 @@ inline void ParallelExecutionEngine::checkErr(cl_int err, const char* name)
 }
 
 void ParallelExecutionEngine::printInfo() {
-	for each (cl::Platform platform in platformList)
+	for (cl::Platform platform : platformList)
 	{
 		std::string platformVendor;
 		platformList[0].getInfo((cl_platform_info)CL_PLATFORM_VENDOR, &platformVendor);
 		std::cerr << "Platform is by: " << platformVendor << "\n";
 	}
-	for each (cl::Device device in devices)
+	for (cl::Device device : devices)
 	{
 		std::string name;
 		device.getInfo(CL_DEVICE_NAME, &name);
@@ -102,7 +102,7 @@ void ParallelExecutionEngine::execTestCode() {
 	kernel.setArg(3, arraySize);
 
 	cl::Event event;
-	err = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(arraySize), cl::NDRange(1), NULL, &event);
+	err = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(arraySize), cl::NDRange(4), NULL, &event);
 	checkErr(err, "ComamndQueue::enqueueNDRangeKernel()");
 
 	event.wait();
